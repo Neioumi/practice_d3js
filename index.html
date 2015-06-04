@@ -1,15 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>D3.js練習</title>
-	<link rel="stylesheet" href="">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>D3.js練習</title>
+  <link rel="stylesheet" href="">
 </head>
 <body>
-	<p>Hello 1</p>
-	<p>Hello 2</p>
-	<p>Hello 3</p>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js" charset="utf-8"></script>
+  <p>Hello 1</p>
+  <p>Hello 2</p>
+  <p>Hello 3</p>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js" charset="utf-8"></script>
+  <script>
+/* ================================================
+    // 全てのpを指定して、テキスト書き換え
+    // d3.select("body").selectAll("p").text("Hello from d3.js!");
+
+    // 上のセレクト部分を変数化
+    var p = d3.select("body").selectAll("p");
+
+    // CSSスタイルを設定
+    p.text("Hello from d3.js!")
+      // .style("font-size", "28px")
+      // .style("font-weight", "bold")
+      // 上のように1行ずつ設定したり、下のようにまとめて設定したり
+      .style({
+        "font-size": "28px",
+        "font-weight": "bold"
+      });
+
+    // 関数を使うこともできる
+    p.style("font-size", function() {
+      return Math.floor(Math.random() * 29) + "px";
+    });
+================================================ */
+
+
+  </script>
 </body>
 </html>
