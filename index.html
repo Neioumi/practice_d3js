@@ -14,6 +14,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js" charset="utf-8"></script>
   <script>
 /* ================================================
+    // Styleの設定
+    // = = = = = = = = = = = = = = = = = = = = = =
+
     // 全てのpを指定して、テキスト書き換え
     // d3.select("body").selectAll("p").text("Hello from d3.js!");
 
@@ -36,7 +39,165 @@
     });
 ================================================ */
 
+/* ================================================
+    // 要素の追加（append）と削除（remove）
+    // = = = = = = = = = = = = = = = = = = = = = =
 
+    d3.select("body").append("p").text("hello 4").remove();
+
+================================================ */
+
+/* ================================================
+    // data で配列の値を返す
+    // = = = = = = = = = = = = = = = = = = = = = =
+
+    var dataset = [12, 24, 36];
+    var p = d3.select("body").selectAll("p");
+
+    // 上の配列がそれぞれ要素（ここではp）に表示される
+    // p.data(dataset).text(function(d) {
+    //   return d;
+    // });
+
+    // ふたつめの引数（ここではi）は、要素の順番
+    p.data(dataset).text(function(d, i) {
+      return i + "番目は" + d + "です。";
+    });
+
+================================================ */
+
+/* ================================================
+    // update, enter, exit領域
+    // = = = = = = = = = = = = = = = = = = = = = =
+
+    // var dataset = [12, 24, 36, 48, 60];
+    var dataset = [12, 24];
+    var p = d3.select("body").selectAll("p");
+
+    // dataを使った瞬間に、仮想領域が作られる
+    // update: 対応する要素がある場合 -> text, style
+    // enter: 対応する要素が足りない場合 -> append
+    // exit: 対応する要素が余った場合 -> remove
+
+    // ▼ 要素が足りない時（配列が5つで、対象となっている要素は3つ）
+    // var update = p.data(dataset);
+    // var enter = update.enter(); // enterに入るものを取得
+
+    // update.text(function(d) {
+    //   return "update: " + d;
+    // });
+
+    // enter.append("p").text(function(d) {
+    //   return "enter: " + d;
+    // });
+
+
+    // ▼ 要素が余る時（配列が2つで、対象となっている要素は3つ）
+    var update = p.data(dataset);
+    var exit = update.exit(); // exitとなるものを取得
+
+    update.text(function(d) {
+      return "update: " + d;
+    });
+
+    exit.style("color", "red"); // 判りやすく色を付けてみたり
+    // exit.remove(); // 削除したり
+
+================================================ */
+
+/* ================================================ */
+    // SVG領域
+    // = = = = = = = = = = = = = = = = = = = = = =
+
+    var dataset = [11, 25, 45, 30, 33];
+
+    var w = 500;
+    var h = 200;
+
+    // SVGの領域を作成
+    var svg = d3.select("body").append("svg").attr({width:w, height:h});
+
+    // 円を作成 （トランジション前の状態 → トランジション → トランジション後の状態 の順で書く場合）
+    /*
+    svg.selectAll("circle")
+      .data(dataset)
+      .enter()
+      .append("circle")
+      .attr({ // アトリビュート。ここでは、トランジション前の姿
+        cx: function (d, i) { return 50 + ( i * 100); }, // X座標
+        cy: h / 2, // Y座標
+        // r: function(d) { return d; }, // 半径
+        r: 0, // トランジションで表示させたいので、最初の半径を0にしてみる
+        fill: "grey" // 塗りつぶし
+      })
+      // トランジション
+      .transition()
+      .delay(function(d, i) { // 遅延
+        return i * 300; // それぞれ0.3秒ずつ遅れさせる
+      })
+      .duration(1000)
+      .ease("bounce")
+      .attr({ // トランジション後の姿
+        r: function(d) { return d; } // 半径
+      });
+    */
+
+    // こんなHTMLになる。
+    // <svg width="500" height="200">
+    //   <circle cx="50" cy="100" r="11" fill="grey"></circle>
+    //   <circle cx="150" cy="100" r="25" fill="grey"></circle>
+    //   <circle cx="250" cy="100" r="45" fill="grey"></circle>
+    //   <circle cx="350" cy="100" r="30" fill="grey"></circle>
+    //   <circle cx="450" cy="100" r="33" fill="grey"></circle>
+    // </svg>
+
+    // 円を作成 （本来の姿を指定、eachで前後のスタイルを指定する場合。）
+    // startの姿 → トランジション → 本来の姿 → endの姿 になる
+    svg.selectAll("circle")
+      .data(dataset)
+      .enter()
+      .append("circle")
+      // トランジション
+      .transition()
+      .delay(function(d, i) { // 遅延
+        return i * 300; // それぞれ0.3秒ずつ遅れさせる
+      })
+      .duration(1000)
+      .ease("bounce")
+      // アニメーションの前にしたいこと
+      .each("start", function() {
+        d3.select(this).attr({
+          fill: "blue",
+          r: 0,
+          cy: h
+        });
+      })
+      .attr({ // 本来の姿
+        cx: function (d, i) { return 50 + ( i * 100); }, // X座標
+        cy: h / 2, // Y座標
+        r: function(d) { return d; }, // 半径
+        fill: "grey" // 塗りつぶし
+      })
+      // アニメーションの後にしたいこと
+      .each("end", function() {
+        d3.select(this)
+          .transition()
+          .duration(800)
+          .attr({
+            fill: "pink",
+            r: 0,
+            cy: 0
+          });
+      });
+
+/* ================================================ */
+
+/* ================================================
+    // ◆◆◆
+    // = = = = = = = = = = = = = = = = = = = = = =
+
+    
+================================================ */
   </script>
 </body>
 </html>
