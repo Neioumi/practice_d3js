@@ -5,11 +5,22 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>D3.js練習</title>
   <link rel="stylesheet" href="">
+  <style>
+    .axis path, .axis line {
+      fill: none;
+      stroke: black;
+    }
+    .axis text { /* X軸のテキスト */
+      font-size: 11px;
+    }
+  </style>
 </head>
 <body>
+<!-- 
   <p>Hello 1</p>
   <p>Hello 2</p>
   <p>Hello 3</p>
+ -->
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js" charset="utf-8"></script>
   <script>
@@ -105,7 +116,7 @@
 
 ================================================ */
 
-/* ================================================ */
+/* ================================================
     // SVG領域
     // = = = = = = = = = = = = = = = = = = = = = =
 
@@ -118,29 +129,29 @@
     var svg = d3.select("body").append("svg").attr({width:w, height:h});
 
     // 円を作成 （トランジション前の状態 → トランジション → トランジション後の状態 の順で書く場合）
-    /*
-    svg.selectAll("circle")
-      .data(dataset)
-      .enter()
-      .append("circle")
-      .attr({ // アトリビュート。ここでは、トランジション前の姿
-        cx: function (d, i) { return 50 + ( i * 100); }, // X座標
-        cy: h / 2, // Y座標
-        // r: function(d) { return d; }, // 半径
-        r: 0, // トランジションで表示させたいので、最初の半径を0にしてみる
-        fill: "grey" // 塗りつぶし
-      })
-      // トランジション
-      .transition()
-      .delay(function(d, i) { // 遅延
-        return i * 300; // それぞれ0.3秒ずつ遅れさせる
-      })
-      .duration(1000)
-      .ease("bounce")
-      .attr({ // トランジション後の姿
-        r: function(d) { return d; } // 半径
-      });
-    */
+    
+    // svg.selectAll("circle")
+    //   .data(dataset)
+    //   .enter()
+    //   .append("circle")
+    //   .attr({ // アトリビュート。ここでは、トランジション前の姿
+    //     cx: function (d, i) { return 50 + ( i * 100); }, // X座標
+    //     cy: h / 2, // Y座標
+    //     // r: function(d) { return d; }, // 半径
+    //     r: 0, // トランジションで表示させたいので、最初の半径を0にしてみる
+    //     fill: "grey" // 塗りつぶし
+    //   })
+    //   // トランジション
+    //   .transition()
+    //   .delay(function(d, i) { // 遅延
+    //     return i * 300; // それぞれ0.3秒ずつ遅れさせる
+    //   })
+    //   .duration(1000)
+    //   .ease("bounce")
+    //   .attr({ // トランジション後の姿
+    //     r: function(d) { return d; } // 半径
+    //   });
+
 
     // こんなHTMLになる。
     // <svg width="500" height="200">
@@ -157,6 +168,19 @@
       .data(dataset)
       .enter()
       .append("circle")
+      // マウスオーバーで色変更
+      .on("mouseover", function(d) {
+        d3.select(this).attr("fill", "orange");
+      })
+      // マウスアウトで色変更
+      .on("mouseout", function(d) {
+        d3.select(this).attr("fill", "gray");
+      })
+      // クリックイベント
+      .on("click", function(d) {
+        var rs = d3.select(this).attr("r");
+        alert(rs);
+      })
       // トランジション
       .transition()
       .delay(function(d, i) { // 遅延
@@ -179,18 +203,62 @@
         fill: "grey" // 塗りつぶし
       })
       // アニメーションの後にしたいこと
-      .each("end", function() {
-        d3.select(this)
-          .transition()
-          .duration(800)
-          .attr({
-            fill: "pink",
-            r: 0,
-            cy: 0
-          });
+      // .each("end", function() {
+      //   d3.select(this)
+      //     .transition()
+      //     .duration(800)
+      //     .attr({
+      //       fill: "pink",
+      //       r: 0,
+      //       cy: 0
+      //     });
+      // });
+
+================================================ */
+
+/* ================================================
+    // 横棒グラフ
+    // = = = = = = = = = = = = = = = = = = = = = =
+
+    var dataset = [11, 25, 43, 30, 33];
+
+    var w = 500;
+    var h = 200;
+    var padding = 20;
+
+    // データを表示領域に合わせる
+    var xScale = d3.scale.linear() // 線形スケール（等間隔の縮尺）
+                    .domain([0, d3.max(dataset)]) // 入力ドメイン。入力データの取りうる範囲のこと。数値を入れてもいいが、ここでは配列の最大値で指定
+                    .range([padding, w - padding]) // 出力レンジ。出力値の取りうる範囲。通常、画面用にピクセル単位
+                    .nice(); // 端数の時は、グラフを端まで伸ばさないなど、いい感じに調整してくれる
+
+    var svg = d3.select("body").append("svg").attr({width:w, height:h});
+
+    // 横軸を作成
+    var xAxis = d3.svg.axis()
+                    .scale(xScale)
+                    .orient("bottom");
+
+    svg.append("g")
+        .attr({
+          class: "axis", // スタイル用にクラス名を付ける
+          transform: "translate(0, 180)"
+        })
+        .call(xAxis);
+
+    svg.selectAll("rect")
+      .data(dataset)
+      .enter()
+      .append("rect")
+      .attr({
+        x: padding, // 余白分ズラしたところから描画
+        y: function(d, i) { return i * 25; },
+        width: function(d) { return xScale(d); },
+        height: 20,
+        fill: "red"
       });
 
-/* ================================================ */
+================================================ */
 
 /* ================================================
     // ◆◆◆
