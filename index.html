@@ -6,12 +6,22 @@
   <title>D3.js練習</title>
   <link rel="stylesheet" href="">
   <style>
-    .axis path, .axis line {
+    /*.axis path, .axis line {
       fill: none;
       stroke: black;
     }
-    .axis text { /* X軸のテキスト */
+    .axis text {
       font-size: 11px;
+    }*/
+    .node:hover circle {
+      stroke: #000 !important;
+      stroke-width: 2px;
+    }
+    .node text {
+      font: 10px sans-selif;
+    }
+    .node:hover text {
+      cursor: default;
     }
   </style>
 </head>
@@ -220,7 +230,7 @@
     // 横棒グラフ
     // = = = = = = = = = = = = = = = = = = = = = =
 
-    var dataset = [11, 25, 43, 30, 33];
+    var dataset = [11, 25, 43, 30, 33, 25, 43, 11];
 
     var w = 500;
     var h = 200;
@@ -252,13 +262,186 @@
       .append("rect")
       .attr({
         x: padding, // 余白分ズラしたところから描画
-        y: function(d, i) { return i * 25; },
+        // y: function(d, i) { return i * 25; }, // 棒グラフのy座標をそれぞれ25ピクセルずつずらして表示
+        y: function(d, i) { return i * ((h - padding) / dataset.length); }, // データセットの値の個数で計算
         width: function(d) { return xScale(d); },
         height: 20,
         fill: "red"
       });
 
 ================================================ */
+
+/* ================================================
+    // 散布図の作成
+    // = = = = = = = = = = = = = = = = = = = = = =
+    var w = 500;
+    var h = 100;
+
+    var dataset = [
+                    [  5, 20],
+                    [480, 90],
+                    [250, 50],
+                    [100, 33],
+                    [330, 95],
+                    [410, 12],
+                    [475, 44],
+                    [ 25, 67],
+                    [ 85, 21],
+                    [220, 88]
+                  ];
+
+    var svg = d3.select('body')
+      .append('svg')
+      .attr('width', w)
+      .attr('height', h);
+
+    svg.selectAll('circle')
+        .data(dataset)
+        .enter()
+        .append('circle')
+        .attr('cx', function(d) {
+          return d[0]; // 配列の0番目の値
+        })
+        .attr('cy', function(d) {
+          return d[1]; // 配列の1番目の値
+        })
+        .attr('r', function(d) {
+          return Math.sqrt(h - d[1]); // 円のサイズを値に合わせて変更。値が大きくなりすぎないように平方根をとっている
+          // 配列に半径用の3つ目の値がある場合は、 return d[2]; で参照する。
+        });
+
+    // ラベル
+    svg.selectAll('text')
+        .data(dataset)
+        .enter()
+        .append('text')
+        .text(function(d) {
+          return d[0] + ',' + d[1];
+        })
+        // ラベルの表示位置
+        .attr('x', function(d) {
+          return d[0];
+        })
+        .attr('y', function(d) {
+          return d[1];
+        })
+        .attr('font-family', 'sans-serif')
+        .attr('font-size', '11px')
+        .attr('fill', 'blue');
+
+================================================ */
+
+/* ================================================ */
+    // バブルチャート
+    // 公式サイト-Examplesのバブルチャートをカスタマイズしてみる
+    // = = = = = = = = = = = = = = = = = = = = = =
+
+    var diameter = 500,
+        format = d3.format(",d"),
+        color = d3.scale.category20c();
+
+    var bubble = d3.layout.pack()
+        .sort(null)
+        .size([diameter, diameter])
+        .padding(1.5);
+
+    // SVGの領域作成
+    var svg = d3.select("body").append("svg")
+        .attr({
+          width: diameter,
+          height: diameter,
+          class: "bubble"
+        });
+
+    // JSONデータ
+    d3.json("dummydata_flare.json", function(error, root) {
+      var node = svg.selectAll(".node")
+          .data(bubble.nodes(classes(root))
+            .filter(function(d) { return !d.children; }))
+          .enter()
+          .append("g") // 泡のひとつ。下でクラス名を設定して、<g class="node">となる。中にtitle, circle, textを含む
+          .attr("class", "node") // スタイル用にクラス名を付ける
+          .attr("transform", function(d) { // 座標
+            return "translate(" + d.x + "," + d.y + ")";
+          });
+
+      // マウスオーバーで表示されるタイトル
+      // node.append("title")
+      //   .text(function(d) {
+      //     return d.className + ": " + format(d.value);
+      //   });
+
+      // マウスオーバーでツールチップ表示
+      // node.append("rect")
+
+      // 円を作成
+      node.append("circle")
+        .transition() // トランジション
+        .delay(function(d, i) { // 遅延（それぞれ0.01秒ずつ）
+          return i * 10;
+        })
+        .duration(1200)
+        .ease("bounce")
+        // トランジション前にしたいこと
+        .each("start", function() {
+          d3.select(this).attr("r", 0)
+          .style({
+            fill: "white",
+            stroke: "white"
+          });
+        })
+        .attr("r", function(d) {
+          return d.r;
+        })
+        .style({
+          fill: function(d) { return color(d.packageName);　},
+          stroke: function(d) { return color(d.packageName);　}
+        });
+
+      // ラベルを作成
+      node.append("text")
+        .transition() // トランジション
+        .delay(function(d, i) { // 遅延
+          return i * 10 + 300;
+        })
+        .duration(600)
+        // トランジション前にしたいこと
+        .each("start", function() {
+          d3.select(this).attr({
+            fill: function(d) { return color(d.packageName); },
+            });
+        })
+        .attr({
+          fill: "black",
+          dy: ".3em"
+        })
+        .style("text-anchor", "middle")
+        .text(function(d) {
+          return d.className.substring(0, d.r / 3);
+        });
+    });
+
+    // Returns a flattened hierarchy containing all leaf nodes under the root.
+    function classes(root) {
+      var classes = [];
+
+      function recurse(name, node) {
+        if (node.children) node.children.forEach(function(child) {
+          recurse(node.name, child);
+        });
+          else classes.push({
+            packageName: name,
+            className: node.name,
+            value: node.size
+          });
+      }
+      recurse(null, root);
+      return {children: classes};
+    }
+
+    d3.select(self.frameElement).style("height", diameter + "px");
+
+/* ================================================ */
 
 /* ================================================
     // ◆◆◆
